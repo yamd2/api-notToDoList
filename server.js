@@ -6,26 +6,11 @@ import morgan from "morgan";
 
 //middleware
 app.use(morgan("dev"));
+app.use(express.json());
 
-// api endpoints
-
-//workflow : CRUD
-//C(create) => receive new task and store in database
-app.post("/api/v1/task", (req, res) => {
-  res.json({ message: "to do post method" });
-});
-// R(Read) => read data from data base and return to the client
-app.get("/api/v1/task", (req, res) => {
-  res.json({ message: "todo get method" });
-});
-// U(update)  => update some information of existing data int the database and respond client accordingly
-app.put("/api/v1/task", (req, res) => {
-  res.json({ message: "todo put method" });
-});
-// D(Delete) => Delete data(s) from database and response client accordingly
-app.delete("/api/v1/task", (req, res) => {
-  res.json({ message: "todo delete list" });
-});
+//api endpoints
+import taskRouter from "./src/routers/taskRouter.js";
+app.use("/api/v1/task", taskRouter);
 
 app.listen(PORT, (error) => {
   error
