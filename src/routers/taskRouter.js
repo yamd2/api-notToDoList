@@ -1,79 +1,77 @@
 import express from "express";
+import {
+  deleteTask,
+  getTasks,
+  insertTask,
+  updateTask,
+} from "../models/task/taskModel.js";
 const router = express.Router();
-
-//fake database
-let fakeTaskTable = [
-  {
-    _id: 1,
-    task: "coding",
-    hr: 50,
-    type: "entry",
-  },
-  {
-    _id: 2,
-    task: "eating",
-    hr: 2,
-    type: "bad",
-  },
-  {
-    _id: 3,
-    task: "sleeping",
-    hr: 8,
-    type: "entry",
-  },
-];
 
 //workflow : CRUD
 //C(create) => receive new task and store in database
-router.post("/", (req, res) => {
-  console.log(req.body);
+router.post("/", async (req, res) => {
+  try {
+    const result = await insertTask(req.body);
+    console.log(result);
 
-  fakeTaskTable.push(req.body);
+    res.json({ status: "success", message: "new task has been added" });
+  } catch (error) {
+    res.json({
+      status: "error",
+      message: error.message,
+    });
+  }
+
+  const result = await insertTask(req.body);
   res.json({ status: "success", message: "new task has been added" });
 });
 // R(Read) => read data from data base and return to the client
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
+  //database query to get all tasks
+
+  const data = await getTasks();
   res.json({
     status: "success",
     message: "here are the avilable  list",
-    data: fakeTaskTable,
+    data,
   });
 });
 // U(update)  => update some information of existing data int the database and respond client accordingly
-router.put("/", (req, res) => {
+router.put("/", async (req, res) => {
   const { _id, type } = req.body;
   console.log(req.body);
 
-  fakeTaskTable = fakeTaskTable.map((item) => {
-    if (item._id === _id) {
-      item.type = type;
-    }
-    return item;
-  });
+  const result = await updateTask(_id, { type });
 
-  res.json({
-    status: "success",
-    message: "todo put method",
-  });
+  if (result?._id) {
+    res.json({
+      status: "success",
+      message: "the task is updated successully",
+    });
+  } else {
+    res.json({
+      status: "nothing updated",
+      message: "task is not updated",
+    });
+  }
 });
 // D(Delete) => Delete data(s) from database and response client accordingly
-router.delete("/:_id?", (req, res) => {
-  const { _id } = req.params;
+router.delete("/", async (req, res) => {
+  const result = await deleteTask(req.body);
 
-  if (!_id) {
-    res.status(400).json({
-      status: "error",
-      message: "invalid request , _id is  missing",
+  console.log(result);
+
+  if (result?.deletedCount) {
+    res.json({
+      status: "success",
+      message: "the selected task has been deleted",
     });
-    return;
+  } else {
+    res.json({
+      status: "success",
+      message: "Nothing to delete",
+    });
   }
-  console.log(req.params);
-  fakeTaskTable = fakeTaskTable.filter((item) => item._id != _id);
-  console.log(fakeTaskTable);
-  res.json({
-    status: "success",
-    message: "the selected task has been deleted",
-  });
 });
 
 export default router;
